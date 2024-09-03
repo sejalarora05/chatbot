@@ -1,0 +1,619 @@
+// Home.tsx
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Box,
+  Typography,
+  IconButton,
+  TextField,
+  Paper,
+  Grid,
+  Card,
+  CardContent,
+  InputAdornment,
+  CircularProgress,
+} from "@mui/material";
+import SendIcon from "@mui/icons-material/Send";
+import MenuIcon from "@mui/icons-material/Menu";
+import MicIcon from "@mui/icons-material/Mic";
+import StopCircleIcon from "@mui/icons-material/StopCircle";
+import VolumeUpIcon from "@mui/icons-material/VolumeUp";
+import { ThreeDots } from "react-loader-spinner";
+import BotGIF from "../../assets/images/bot.gif";
+import chatBot from "../../assets/images/chatbot.png";
+import { NETSMARTZ_THEME_COLOR } from "../theme/colors";
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from "react-speech-recognition";
+import { toast, ToastContainer } from "react-toastify";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  chatStartApi,
+  loadExistingChatApi,
+  newChatCreateApi,
+} from "../../api_config/api_services";
+import { AxiosError } from "axios";
+import { useSelector } from "react-redux";
+import { InfinitySpin } from "react-loader-spinner";
+
+const Home: React.FC<any> = ({
+  isSideVisible,
+  setSideVisible,
+  conversation,
+  setConversation,
+  organizationListOption,
+}) => {
+  const [query, setQuery] = useState<any>("");
+  // const [conversation, setConversation] = useState<any>([]);
+  const [loading, setLoading] = useState(false);
+  const [activeIndex, setActiveIndex]: any = useState(null);
+
+  const [isListening, setIsListening] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isChatEnabled, setIsChatEnabled] = useState(true);
+  const [isStart, setIsStart] = useState(false);
+  const [utterance, setUtterance]: any = useState(null);
+  const [open, setOpen]: any = useState(false);
+  const lastMessageRef = useRef<any>(null);
+
+  useEffect(() => {
+    // Scroll to the last message whenever the conversation changes
+    if (lastMessageRef.current) {
+      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [conversation]);
+
+  const selectedOrgId = useSelector((state: any) => state?.auth?.selectedOrgId);
+  const { chat_id } = useParams();
+  console.log({ chat_id });
+  const navigate = useNavigate();
+
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition,
+    isMicrophoneAvailable,
+  } = useSpeechRecognition();
+  const notifyError = (message: string) => toast.error(message);
+
+  const handleMicButton = () => {
+    if (!isMicrophoneAvailable) {
+      notifyError("Microphone is not available.");
+      return;
+    }
+    if (!browserSupportsSpeechRecognition) {
+      notifyError("Feature not supported in this browser.");
+      return;
+    }
+    handleStartListening();
+  };
+
+  useEffect(() => {
+    if (listening && transcript) {
+      setQuery(transcript);
+    }
+  }, [listening, transcript]);
+
+  const newChatInitialization = async (val: any) => {
+    // setOpen(true);
+    if (selectedOrgId !== "") {
+      const payload: any = { org_id: selectedOrgId, question: val };
+      console.log(payload, "payload");
+      await newChatCreateApi(payload)
+        .then((result: any) => {
+          console.log({ result });
+          if (result?.success) {
+            console.log("NewChat----->", result);
+            const conversationId =
+              result?.data?.conversations[0]?.conversation_id;
+
+            handleApiCall(val, conversationId);
+            navigate(`/c/${conversationId}`);
+
+            // setLoading(false)
+            // setConversation([])
+          } else {
+            const message: string =
+              result.data?.message || "Something Went Wrong.";
+            notifyError(message);
+            // setOpen(false);
+            // setLoading(false)
+          }
+        })
+        .catch((err: any) => {
+          const error = err as AxiosError;
+          // Consolidated error handling
+          let errorMessage = "Something went wrong.";
+          if (error.response) {
+            const responseData = error.response.data as { error?: string };
+            if (responseData?.error) {
+              errorMessage = responseData.error;
+            }
+          } else {
+            errorMessage =
+              "Error occurred while setting up the request: " + error.message;
+          }
+          // Notify error and set response message
+          notifyError(errorMessage);
+          setOpen(false);
+          // setLoading(false)
+        });
+    }
+  };
+
+  const handleStartListening = () => {
+    SpeechRecognition.startListening({ continuous: true, language: "en-IN" });
+    setIsDialogOpen(true);
+    setIsListening(true);
+  };
+
+  const handleStopListening = () => {
+    SpeechRecognition.stopListening();
+    setIsListening(false);
+    setIsDialogOpen(false);
+    resetTranscript();
+  };
+
+  const handleStop = () => {
+    setActiveIndex(null);
+    const synth = window.speechSynthesis;
+    synth.cancel();
+    setIsStart(false);
+  };
+
+  useEffect(() => {
+    const synth = window.speechSynthesis;
+    console.log(synth, "synth---->");
+    return () => {
+      synth.cancel();
+      handleStop();
+    };
+  }, []);
+
+  const handleSpeak = (text: any, index: number) => {
+    handleStop();
+    setActiveIndex(index);
+    setIsStart(true);
+    const u: any = new SpeechSynthesisUtterance(text);
+    setUtterance(u);
+    const synth = window.speechSynthesis;
+    synth.speak(u);
+  };
+
+  const handleApiCall = async (val: string, conversationId: any) => {
+    // setOpen(true);
+    if (selectedOrgId !== "") {
+      const payload: any = {
+        org_id: selectedOrgId,
+        conversation_id: chat_id || conversationId,
+        question: val,
+        llmtype: "openai",
+      };
+      setConversation((prevState: object[]) => [
+        ...prevState,
+        { content: val, type: "human" },
+        { content: "", type: "ai" },
+      ]);
+      if (lastMessageRef.current) {
+        lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+      setIsChatEnabled(false);
+      setQuery("");
+      await chatStartApi(payload, setConversation).then(() => {
+        setIsChatEnabled(true);
+      });
+      // await chatStartApi(payload)
+      //   .then((result: any) => {
+      //     console.log({ result });
+      //     if (result?.success) {
+      //       console.log("---chat started", result);
+
+      //       loadExistingConversation(conversationId);
+      //     } else {
+      //       const message: string =
+      //         result.data?.message || "Something Went Wrong.";
+      //       notifyError(message);
+      //       setOpen(false);
+      //       // setLoading(false)
+      //     }
+      //   })
+      //   .catch((err: any) => {
+      //     const error = err as AxiosError;
+      //     // Consolidated error handling
+      //     // setOpen(false);
+      //     notifyError(error.message);
+      //     let errorMessage = "Something went wrong.";
+      //     if (error.response) {
+      //       const responseData = error.response.data as { error?: string };
+      //       if (responseData?.error) {
+      //         errorMessage = responseData.error;
+      //       }
+      //     } else {
+      //       errorMessage =
+      //         "Error occurred while setting up the request: " + error.message;
+      //     }
+      //     // Notify error and set response message
+      //     notifyError(errorMessage);
+      //     // setOpen(false);
+      //     // setLoading(false)
+      //   });
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      //setValue(event.target.value);
+      // Execute your desired function here
+      event.preventDefault();
+      const inputValue = (event.target as HTMLInputElement).value;
+
+      if (chat_id === undefined) {
+        newChatInitialization(inputValue);
+      }
+
+      if (inputValue !== "" && chat_id && chat_id !== "") {
+        handleApiCall(inputValue, undefined);
+        console.log("You entered:", inputValue);
+      } else {
+        console.log("You entered nothing:");
+      }
+    }
+  };
+
+  const onSendIcon = (event: any) => {
+    if (chat_id === undefined) {
+      newChatInitialization(query);
+    }
+
+    if (query !== "" && chat_id && chat_id !== "") {
+      handleApiCall(query, undefined);
+      console.log("You entered:", query);
+    } else {
+      console.log("You entered nothing:");
+    }
+  };
+
+  const loadExistingConversation = async (conversationId: any) => {
+    setOpen(true);
+    if (selectedOrgId !== "" && (chat_id || conversationId)) {
+      const payload: any = {
+        org_id: selectedOrgId,
+        conversation_id: chat_id || conversationId,
+      };
+      await loadExistingChatApi(payload)
+        .then((result: any) => {
+          console.log({ result });
+          if (result?.success) {
+            console.log("--------$$$", result);
+            setConversation(result?.data);
+            setOpen(false);
+            // setLoading(false)
+          } else {
+            const message: string =
+              result.data?.message || "Something Went Wrong.";
+            notifyError(message);
+            setOpen(false);
+            // setLoading(false)
+          }
+        })
+        .catch((err: any) => {
+          const error = err as AxiosError;
+          // Consolidated error handling
+          let errorMessage = "Something went wrong.";
+          if (error.response) {
+            const responseData = error.response.data as { error?: string };
+            if (responseData?.error) {
+              errorMessage = responseData.error;
+            }
+          } else {
+            errorMessage =
+              "Error occurred while setting up the request: " + error.message;
+          }
+          // Notify error and set response message
+          notifyError(errorMessage);
+          setOpen(false);
+          // setLoading(false)
+        });
+    }
+  };
+
+  // useEffect(() => {
+  //   if (chat_id === undefined) {
+  //     setConversation([]);
+  //     console.log("Error1")
+  //   }
+  //   else {
+  //     loadExistingConversation();
+  //     console.log("Error2")
+  //   }
+  // }, [chat_id])
+
+  return (
+    <Grid
+      container
+      direction="column"
+      justifyContent="space-between"
+      mt={9}
+      sx={{
+        height: "90vh",
+        p: 2,
+        overflow: "hidden", // Hide scrollbars
+        bgcolor: "#F7F7F7", // Background color for better contrast
+      }}
+    >
+      {/* Left Corner Menu */}
+      {/* {!isSideVisible && (
+        <Box
+          position="absolute"
+          top={70}
+          left={0}
+          p={1}
+          pl={2}
+          display="flex"
+          // justifyContent="flex-start"
+          // alignItems="flex-start"
+          // width="100vw"
+        >
+          <IconButton onClick={() => setSideVisible(true)}>
+            <MenuIcon sx={{ color: "#7e7e7e" }} />
+          </IconButton>
+        </Box>
+      )} */}
+      {/* Main Content */}
+      <Box
+        height={"100vh"}
+        display="flex"
+        flexDirection="column"
+        bgcolor={"#F7F7F7"}
+      >
+        <ToastContainer position="bottom-right" autoClose={2000} />
+
+        {/* <Grid bgcolor={'#F7F7F7'} container sx={{ flex: 1, padding: 2, }}> */}
+        <Grid bgcolor={"#F7F7F7"} item xs={15} lg={12}>
+          {/* Chat Container */}
+          <Grid>
+            <Paper
+              sx={{
+                padding: "20px",
+                // marginLeft: isSideVisible === false ? "30px" : "0px", // Use ternary operator to handle the conditional styling
+                borderRadius: "8px",
+                minHeight: "84vh",
+                position: "relative",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {/* Display Conversation */}
+              <Box
+                sx={{
+                  maxHeight: "calc(80vh - 120px)",
+                  overflowY: "auto",
+                  marginBottom: "20px",
+                  "&::-webkit-scrollbar": {
+                    display: "none", // Hide the scrollbar
+                  },
+                }}
+              >
+                {/* Display Welcome Message */}
+                {!conversation.length && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      minHeight: "50vh",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    <Typography
+                      variant="body1"
+                      fontSize={"18px"}
+                      fontWeight={"600"}
+                      textAlign="center"
+                    >
+                      Welcome to ConverseAI: Your Virtual Companion
+                    </Typography>
+                    <Typography variant="body2">
+                      How can I assist you today?
+                    </Typography>
+                    <img
+                      className="item_text"
+                      src={chatBot}
+                      alt="GIF"
+                      style={{
+                        width: "125px",
+                        height: "125px",
+                        marginTop: "20px",
+                      }}
+                    />
+                  </Box>
+                )}
+
+                {/* Display Conversation Messages */}
+                {conversation &&
+                  conversation?.map(
+                    (item: { content: string; type: string }, index: any) => (
+                      <Card
+                        key={index}
+                        variant="outlined"
+                        sx={{ marginBottom: "10px", border: "none" }}
+                      >
+                        <CardContent>
+                          {item?.type === "human" && (
+                            <Typography
+                              variant="body1"
+                              sx={{
+                                width: "55%",
+                                marginBottom: "4px",
+                                fontWeight: "bold",
+                                padding: "15px",
+                                paddingLeft: "15px",
+                                paddingRight: "15px",
+                                backgroundColor: "rgb(237 237 237)",
+                                borderRadius: "10px",
+                                overflow: "auto", // Allow scroll if needed
+                                wordBreak: "break-word",
+                              }}
+                            >
+                              {item?.content}
+                            </Typography>
+                          )}
+                          {item?.type === "ai" && (
+                            <Typography
+                              sx={{
+                                width: "55%",
+                                float: "right",
+                                padding: "15px",
+                                border: "1px solid rgb(237, 237, 237)",
+                                borderRadius: "10px",
+                                overflow: "auto", // Allow scroll if needed
+                                wordBreak: "break-word", // Ensure words break and wrap correctly
+                              }}
+                              variant="body1"
+                              ref={
+                                index === conversation.length - 1
+                                  ? lastMessageRef
+                                  : null
+                              }
+                            >
+                              {item.content === "" && (
+                                <CircularProgress size={16} />
+                              )}
+                              {!loading &&
+                                (isStart ? (
+                                  <VolumeUpIcon
+                                    onClick={() => handleStop()}
+                                    sx={{
+                                      marginLeft: "8px",
+                                      color:
+                                        activeIndex === index
+                                          ? "#F58220"
+                                          : "black",
+                                      float: "right",
+                                    }}
+                                  />
+                                ) : (
+                                  <VolumeUpIcon
+                                    onClick={() =>
+                                      handleSpeak(item.content, index)
+                                    }
+                                    sx={{
+                                      marginLeft: "8px",
+                                      color:
+                                        activeIndex === index
+                                          ? "#F58220"
+                                          : "black",
+                                      float: "right",
+                                    }}
+                                  />
+                                ))}
+                              <p>{item.content}</p>
+                            </Typography>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )
+                  )}
+              </Box>
+              {/* Input Textfield and Button */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: "0px",
+                  left: "0px",
+                  display: "inline-flex",
+                  width: "100%",
+                  gap: "8px",
+                  justifyContent: "center",
+                  borderTop: "1px solid #d3d3d3",
+                  bgcolor: "white",
+                  zIndex: 10,
+                  py: 2,
+                  px: 2,
+                }}
+              >
+                <TextField
+                  placeholder="Enter your query"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  disabled={!isChatEnabled}
+                  fullWidth
+                  size="small"
+                  multiline
+                  maxRows={4} // Adjust as needed
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderColor: "#B2BAC2",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "black",
+                      },
+                      "&.Mui-focused fieldset": {
+                        border: "0.1px solid #B2BAC2",
+                      },
+                      "& textarea": {
+                        overflowY: "auto", // Optional: to enable vertical scrolling if the text exceeds the maxRows
+                      },
+                    },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        {loading ? (
+                          <IconButton>
+                            <ThreeDots
+                              height={30}
+                              width={30}
+                              color={"NETSMARTZ_THEME_COLOR"}
+                            />
+                          </IconButton>
+                        ) : (
+                          <>
+                            <IconButton onClick={onSendIcon}>
+                              <SendIcon />
+                            </IconButton>
+                          </>
+                        )}
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                {/* Independent Icon Button Box */}
+                <Box
+                  sx={{
+                    bgcolor: NETSMARTZ_THEME_COLOR,
+                    borderRadius: "5px",
+                    mb: 3,
+                  }}
+                >
+                  {!listening ? (
+                    <IconButton onClick={handleMicButton}>
+                      <MicIcon sx={{ color: "white" }} />
+                    </IconButton>
+                  ) : (
+                    <IconButton onClick={handleStopListening}>
+                      <StopCircleIcon sx={{ color: "white" }} />
+                    </IconButton>
+                  )}
+                </Box>
+              </Box>
+            </Paper>
+          </Grid>
+          {/* </Grid> */}
+          {/* </Grid> */}
+        </Grid>
+      </Box>
+      {open ? (
+        <div className="spinner-container">
+          <InfinitySpin width="200" color="#F86F03" />
+        </div>
+      ) : null}
+    </Grid>
+  );
+};
+
+export default Home;

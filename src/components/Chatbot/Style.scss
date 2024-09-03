@@ -1,0 +1,36 @@
+.body-style {
+  overflow: hidden;
+}
+
+.gpt-container {
+  height: calc(100vh - 60px);
+}
+.box-container {
+  overflow: scroll;
+  height: calc(100vh - 250px);
+}
+// .spinner-container {
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   background: rgba($color: #000000, $alpha: 0.6);
+//   bottom: 0;
+//   right: 0;
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+//   flex: 1;
+// }
+
+.pdf-container {
+  height: calc(100vh - 150px);
+  overflow: auto;
+}
+
+.grid-left-pane {
+  border: 20px solid white;
+}
+.grid-right-pane {
+  background-image: url("../../assets/images/mesh.png");
+  background-size: 100% auto;
+}
