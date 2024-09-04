@@ -4,7 +4,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 
 import rootReducer from "./reducer";
-import api, {api2, api3} from "./index";
+import api, { api2, api3 } from "./index";
 
 const persistConfig = {
   key: "root",
@@ -32,6 +32,5 @@ const persistor = persistStore(store);
 export type RootState = ReturnType<typeof store.getState>;
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch;
-
 
 export { store, persistor };

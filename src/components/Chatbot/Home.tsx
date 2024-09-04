@@ -7,18 +7,20 @@ import {
   TextField,
   Paper,
   Grid,
-  Card,
-  CardContent,
   InputAdornment,
   CircularProgress,
+  Skeleton,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
-import MenuIcon from "@mui/icons-material/Menu";
 import MicIcon from "@mui/icons-material/Mic";
 import StopCircleIcon from "@mui/icons-material/StopCircle";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import { ThreeDots } from "react-loader-spinner";
-import BotGIF from "../../assets/images/bot.gif";
 import chatBot from "../../assets/images/chatbot.png";
 import { NETSMARTZ_THEME_COLOR } from "../theme/colors";
 import SpeechRecognition, {
@@ -32,16 +34,20 @@ import {
   newChatCreateApi,
 } from "../../api_config/api_services";
 import { AxiosError } from "axios";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { InfinitySpin } from "react-loader-spinner";
+import { UploadFile } from "@mui/icons-material";
+import { AppDispatch, RootState } from "../../api_config/store";
+import { setSelectedChatBotModel } from "../../api_config/slices/chatBotSlice";
 
 const Home: React.FC<any> = ({
   isSideVisible,
   setSideVisible,
   conversation,
   setConversation,
-  organizationListOption,
 }) => {
+  const chatModelSelector = useSelector((state: RootState) => state.chatbot);
+  const dispatch = useDispatch<AppDispatch>();
   const [query, setQuery] = useState<any>("");
   // const [conversation, setConversation] = useState<any>([]);
   const [loading, setLoading] = useState(false);
@@ -377,12 +383,39 @@ const Home: React.FC<any> = ({
                 padding: "20px",
                 // marginLeft: isSideVisible === false ? "30px" : "0px", // Use ternary operator to handle the conditional styling
                 borderRadius: "8px",
-                minHeight: "84vh",
+                minHeight: "90vh",
                 position: "relative",
                 display: "flex",
                 flexDirection: "column",
               }}
             >
+              <Box sx={{ maxWidth: 100, minWidth: 100 }}>
+                <FormControl fullWidth variant="standard">
+                  {/* <InputLabel id="demo-simple-select-label">
+                    Chat Model
+                  </InputLabel> */}
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    value={chatModelSelector.selectedModel.value}
+                    label="Chat Model"
+                    onChange={(event: SelectChangeEvent) => {
+                      dispatch(
+                        setSelectedChatBotModel({ value: event.target.value })
+                      );
+                    }}
+                  >
+                    {chatModelSelector.chatBotModels.map((item: any) => {
+                      return (
+                        <MenuItem key={item?.value} value={item?.value}>
+                          {item?.label}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                </FormControl>
+              </Box>
+
               {/* Display Conversation */}
               <Box
                 sx={{
@@ -434,85 +467,105 @@ const Home: React.FC<any> = ({
                 {conversation &&
                   conversation?.map(
                     (item: { content: string; type: string }, index: any) => (
-                      <Card
-                        key={index}
-                        variant="outlined"
-                        sx={{ marginBottom: "10px", border: "none" }}
-                      >
-                        <CardContent>
-                          {item?.type === "human" && (
+                      <>
+                        <Box
+                          key={index}
+                          ref={
+                            index === conversation.length - 1
+                              ? lastMessageRef
+                              : null
+                          }
+                          display="flex"
+                          justifyContent="flex-start"
+                          alignItems="center"
+                          textAlign={"left"}
+                          width="100%"
+                          my={1}
+                        >
+                          {item.type === "human" && (
                             <Typography
                               variant="body1"
+                              align="left"
                               sx={{
-                                width: "55%",
-                                marginBottom: "4px",
-                                fontWeight: "bold",
-                                padding: "15px",
-                                paddingLeft: "15px",
-                                paddingRight: "15px",
-                                backgroundColor: "rgb(237 237 237)",
-                                borderRadius: "10px",
-                                overflow: "auto", // Allow scroll if needed
-                                wordBreak: "break-word",
+                                color: "#000",
+                                borderRadius: 1,
+                                padding: "10px",
+                                maxWidth: "100%",
+                                wordWrap: "break-word",
                               }}
                             >
-                              {item?.content}
+                              <span style={{ fontWeight: "bold" }}>
+                                Question:-{" "}
+                              </span>{" "}
+                              {item.content}
                             </Typography>
                           )}
-                          {item?.type === "ai" && (
-                            <Typography
+
+                          {item.type === "ai" && (
+                            <Box
                               sx={{
-                                width: "55%",
-                                float: "right",
-                                padding: "15px",
-                                border: "1px solid rgb(237, 237, 237)",
-                                borderRadius: "10px",
-                                overflow: "auto", // Allow scroll if needed
-                                wordBreak: "break-word", // Ensure words break and wrap correctly
+                                display: "flex",
+                                flex: 1,
+                                justifyContent: "space-between",
                               }}
-                              variant="body1"
-                              ref={
-                                index === conversation.length - 1
-                                  ? lastMessageRef
-                                  : null
-                              }
                             >
                               {item.content === "" && (
-                                <CircularProgress size={16} />
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    flex: 1,
+                                    flexDirection: "column",
+                                  }}
+                                >
+                                  <CircularProgress size={16} />
+
+                                  <Skeleton
+                                    width="100%"
+                                    animation="wave"
+                                    height={50}
+                                  />
+                                  <Skeleton width="100%" animation="wave" />
+                                  <Skeleton width="100%" animation="wave" />
+                                </Box>
                               )}
-                              {!loading &&
-                                (isStart ? (
-                                  <VolumeUpIcon
-                                    onClick={() => handleStop()}
-                                    sx={{
-                                      marginLeft: "8px",
-                                      color:
-                                        activeIndex === index
-                                          ? "#F58220"
-                                          : "black",
-                                      float: "right",
-                                    }}
-                                  />
-                                ) : (
-                                  <VolumeUpIcon
-                                    onClick={() =>
-                                      handleSpeak(item.content, index)
-                                    }
-                                    sx={{
-                                      marginLeft: "8px",
-                                      color:
-                                        activeIndex === index
-                                          ? "#F58220"
-                                          : "black",
-                                      float: "right",
-                                    }}
-                                  />
+                              <Typography
+                                variant="body1"
+                                align="left"
+                                sx={{
+                                  color: "#000",
+                                  borderRadius: 1,
+                                  padding: "10px",
+                                  maxWidth: "100%",
+                                  wordWrap: "break-word",
+                                }}
+                              >
+                                {item.content.split("\n").map((line, index) => (
+                                  <span key={index}>
+                                    {line}
+                                    <br />
+                                  </span>
                                 ))}
-                              <p>{item.content}</p>
-                            </Typography>
+                              </Typography>
+                              {item.content !== "" && (
+                                <VolumeUpIcon
+                                  onClick={
+                                    isStart
+                                      ? () => handleStop()
+                                      : () => handleSpeak(item.content, index)
+                                  }
+                                  sx={{
+                                    right: 0,
+                                    color:
+                                      activeIndex === index
+                                        ? "#F58220"
+                                        : "black",
+                                  }}
+                                />
+                              )}
+                            </Box>
                           )}
-                        </CardContent>
-                      </Card>
+                        </Box>
+                      </>
                     )
                   )}
               </Box>
@@ -562,6 +615,9 @@ const Home: React.FC<any> = ({
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
+                        <IconButton onClick={() => {}}>
+                          <UploadFile />
+                        </IconButton>
                         {loading ? (
                           <IconButton>
                             <ThreeDots

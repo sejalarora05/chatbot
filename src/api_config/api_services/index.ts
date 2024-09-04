@@ -185,6 +185,68 @@ export const loadExistingChatApi = async (payload: any) => {
   }
 };
 
+// export const chatStartApi = async (
+//   payload: any,
+//   setConversation: Dispatch<SetStateAction<{ content: string; type: string }[]>>
+// ) => {
+//   const state = store.getState();
+//   const token = state.auth.token;
+
+//   if (!token) {
+//     console.error("No token found in state");
+//     return;
+//   }
+
+//   try {
+//     const response = await fetch(chatUrl, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: `Bearer ${token}`,
+//       },
+//       body: JSON.stringify(payload),
+//     });
+
+//     if (!response.ok) {
+//       throw new Error(`HTTP error! status: ${response.status}`);
+//     }
+
+//     const reader = response.body?.getReader();
+//     const decoder = new TextDecoder();
+//     let aiMessage = "";
+
+//     const readChunk = async () => {
+//       if (!reader) return;
+
+//       const { done, value } = await reader.read();
+//       if (done) {
+//         console.log("Streaming complete");
+//         return;
+//       }
+
+//       if (value) {
+//         aiMessage += decoder.decode(value, { stream: true });
+
+//         setConversation((prevState) => {
+//           const history = prevState.slice(0, -1);
+//           return [...history, { content: aiMessage, type: "ai" }];
+//         });
+//       } else {
+//         console.warn("Received empty chunk");
+//       }
+
+//       readChunk(); // Continue reading the next chunk
+//     };
+
+//     readChunk();
+//   } catch (err: any) {
+//     console.error("Error during streaming:", err.message);
+//     toast.error("Error during streaming: " + err.message);
+//     setConversation((prevState) => prevState.slice(0, -2));
+//     // Handle error
+//   }
+// };
+
 export const chatStartApi = async (
   payload: any,
   setConversation: Dispatch<SetStateAction<{ content: string; type: string }[]>>
@@ -214,6 +276,7 @@ export const chatStartApi = async (
     const reader = response.body?.getReader();
     const decoder = new TextDecoder();
     let aiMessage = "";
+    let previousChunkEndsWithCR = false;
 
     const readChunk = async () => {
       if (!reader) return;
@@ -225,12 +288,35 @@ export const chatStartApi = async (
       }
 
       if (value) {
-        aiMessage += decoder.decode(value, { stream: true });
+        let chunk = decoder.decode(value, { stream: true });
 
+        if (previousChunkEndsWithCR && chunk[0] === "\n") {
+          chunk = chunk.slice(1); // Remove the LF if it follows a CR
+        }
+
+        // Add to aiMessage and check for line breaks
+        aiMessage += chunk;
+
+        // Split message by new lines and update conversation
+        const lines = aiMessage.split(/\r?\n/);
+        // aiMessage = lines.pop() || ""; // Preserve the last line as it may be incomplete
+        // setConversation((prevState) => {
+        //   //           const history = prevState.slice(0, -1);
+        //   //           return [...history, { content: aiMessage, type: "ai" }];
+        //   //         });
         setConversation((prevState) => {
           const history = prevState.slice(0, -1);
-          return [...history, { content: aiMessage, type: "ai" }];
+
+          let finalMessage = "";
+          lines.forEach((it) => (finalMessage += it + "\n"));
+          return [
+            ...history,
+            { content: finalMessage, type: "ai" },
+            // ...lines.map((line) => ({ content: line, type: "ai" })),
+          ];
         });
+
+        previousChunkEndsWithCR = chunk[chunk.length - 1] === "\r";
       } else {
         console.warn("Received empty chunk");
       }
