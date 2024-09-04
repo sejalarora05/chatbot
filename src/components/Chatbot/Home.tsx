@@ -467,22 +467,66 @@ const Home: React.FC<any> = ({
                 {conversation &&
                   conversation?.map(
                     (item: { content: string; type: string }, index: any) => (
-                      <>
-                        <Box
-                          key={index}
-                          ref={
-                            index === conversation.length - 1
-                              ? lastMessageRef
-                              : null
-                          }
-                          display="flex"
-                          justifyContent="flex-start"
-                          alignItems="center"
-                          textAlign={"left"}
-                          width="100%"
-                          my={1}
-                        >
-                          {item.type === "human" && (
+                      <Box
+                        key={index}
+                        ref={
+                          index === conversation.length - 1
+                            ? lastMessageRef
+                            : null
+                        }
+                        display="flex"
+                        justifyContent="flex-start"
+                        alignItems="center"
+                        textAlign={"left"}
+                        width="100%"
+                        my={1}
+                      >
+                        {item.type === "human" && (
+                          <Typography
+                            variant="body1"
+                            align="left"
+                            sx={{
+                              color: "#000",
+                              borderRadius: 1,
+                              padding: "10px",
+                              maxWidth: "100%",
+                              wordWrap: "break-word",
+                            }}
+                          >
+                            <span style={{ fontWeight: "bold" }}>
+                              Question:-{" "}
+                            </span>
+                            {item.content}
+                          </Typography>
+                        )}
+
+                        {item.type === "ai" && (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flex: 1,
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            {item.content === "" && (
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  flex: 1,
+                                  flexDirection: "column",
+                                }}
+                              >
+                                <CircularProgress size={16} />
+
+                                <Skeleton
+                                  width="100%"
+                                  animation="wave"
+                                  height={50}
+                                />
+                                <Skeleton width="100%" animation="wave" />
+                                <Skeleton width="100%" animation="wave" />
+                              </Box>
+                            )}
                             <Typography
                               variant="body1"
                               align="left"
@@ -494,78 +538,30 @@ const Home: React.FC<any> = ({
                                 wordWrap: "break-word",
                               }}
                             >
-                              <span style={{ fontWeight: "bold" }}>
-                                Question:-{" "}
-                              </span>{" "}
-                              {item.content}
+                              {item.content.split("\n").map((line, index) => (
+                                <span key={index}>
+                                  {line}
+                                  <br />
+                                </span>
+                              ))}
                             </Typography>
-                          )}
-
-                          {item.type === "ai" && (
-                            <Box
-                              sx={{
-                                display: "flex",
-                                flex: 1,
-                                justifyContent: "space-between",
-                              }}
-                            >
-                              {item.content === "" && (
-                                <Box
-                                  sx={{
-                                    display: "flex",
-                                    flex: 1,
-                                    flexDirection: "column",
-                                  }}
-                                >
-                                  <CircularProgress size={16} />
-
-                                  <Skeleton
-                                    width="100%"
-                                    animation="wave"
-                                    height={50}
-                                  />
-                                  <Skeleton width="100%" animation="wave" />
-                                  <Skeleton width="100%" animation="wave" />
-                                </Box>
-                              )}
-                              <Typography
-                                variant="body1"
-                                align="left"
+                            {item.content !== "" && (
+                              <VolumeUpIcon
+                                onClick={
+                                  isStart
+                                    ? () => handleStop()
+                                    : () => handleSpeak(item.content, index)
+                                }
                                 sx={{
-                                  color: "#000",
-                                  borderRadius: 1,
-                                  padding: "10px",
-                                  maxWidth: "100%",
-                                  wordWrap: "break-word",
+                                  right: 0,
+                                  color:
+                                    activeIndex === index ? "#F58220" : "black",
                                 }}
-                              >
-                                {item.content.split("\n").map((line, index) => (
-                                  <span key={index}>
-                                    {line}
-                                    <br />
-                                  </span>
-                                ))}
-                              </Typography>
-                              {item.content !== "" && (
-                                <VolumeUpIcon
-                                  onClick={
-                                    isStart
-                                      ? () => handleStop()
-                                      : () => handleSpeak(item.content, index)
-                                  }
-                                  sx={{
-                                    right: 0,
-                                    color:
-                                      activeIndex === index
-                                        ? "#F58220"
-                                        : "black",
-                                  }}
-                                />
-                              )}
-                            </Box>
-                          )}
-                        </Box>
-                      </>
+                              />
+                            )}
+                          </Box>
+                        )}
+                      </Box>
                     )
                   )}
               </Box>

@@ -299,11 +299,7 @@ export const chatStartApi = async (
 
         // Split message by new lines and update conversation
         const lines = aiMessage.split(/\r?\n/);
-        // aiMessage = lines.pop() || ""; // Preserve the last line as it may be incomplete
-        // setConversation((prevState) => {
-        //   //           const history = prevState.slice(0, -1);
-        //   //           return [...history, { content: aiMessage, type: "ai" }];
-        //   //         });
+      
         setConversation((prevState) => {
           const history = prevState.slice(0, -1);
 
