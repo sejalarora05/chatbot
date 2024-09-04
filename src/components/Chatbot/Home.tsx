@@ -85,6 +85,14 @@ const Home: React.FC<any> = ({
   const [open, setOpen]: any = useState(false);
   const lastMessageRef = useRef<any>(null);
 
+  const fileInputRef = useRef<HTMLInputElement>(null); // Create a ref for the file input
+
+  const handleFileUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   useEffect(() => {
     // Scroll to the last message whenever the conversation changes
     if (lastMessageRef.current) {
@@ -217,7 +225,7 @@ const Home: React.FC<any> = ({
         org_id: selectedOrgId,
         conversation_id: chat_id || conversationId,
         question: val,
-        llmtype: "openai",
+        llmtype: chatModelSelector.selectedModel.value,
       };
       setConversation((prevState: object[]) => [
         ...prevState,
@@ -636,7 +644,7 @@ const Home: React.FC<any> = ({
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton onClick={() => {}}>
+                        <IconButton onClick={handleFileUploadClick}>
                           <UploadFile />
                         </IconButton>
                         {loading ? (
@@ -689,6 +697,12 @@ const Home: React.FC<any> = ({
           <InfinitySpin width="200" color="#F86F03" />
         </div>
       ) : null}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,.zip"
+        style={{ display: "none" }}
+      />
     </Grid>
   );
 };
