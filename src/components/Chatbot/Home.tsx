@@ -15,6 +15,7 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
+  circularProgressClasses,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import MicIcon from "@mui/icons-material/Mic";
@@ -39,6 +40,29 @@ import { InfinitySpin } from "react-loader-spinner";
 import { UploadFile } from "@mui/icons-material";
 import { AppDispatch, RootState } from "../../api_config/store";
 import { setSelectedChatBotModel } from "../../api_config/slices/chatBotSlice";
+
+const ChatBotLoader = () => {
+  return (
+    <React.Fragment>
+      <svg width={0} height={0}>
+        <defs>
+          <linearGradient id="my_gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#e01cd5" />
+            <stop offset="100%" stopColor="#1CB5E0" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <CircularProgress
+        size={16}
+        sx={{
+          "svg circle": {
+            stroke: "url(#my_gradient)",
+          },
+        }}
+      />
+    </React.Fragment>
+  );
+};
 
 const Home: React.FC<any> = ({
   isSideVisible,
@@ -516,7 +540,8 @@ const Home: React.FC<any> = ({
                                   flexDirection: "column",
                                 }}
                               >
-                                <CircularProgress size={16} />
+                                {/* <CircularProgress size={16} /> */}
+                                <ChatBotLoader />
 
                                 <Skeleton
                                   width="100%"
