@@ -7,6 +7,7 @@ import { GetAllOrganizationApi } from "../../api_config/api_services";
 import axios, { AxiosError } from "axios";
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
+import { Grid } from "@mui/material";
 
 const Chatbot: React.FC = () => {
   const [isSideVisible, setSideVisible] = useState(true);
@@ -37,27 +38,23 @@ const Chatbot: React.FC = () => {
   }, [organizationIds]);
 
   return (
-    <>
-      {/* <Header /> */}
-      <div className="chatbot">
-        <Sidebar
-          isSideVisible={isSideVisible}
-          setSideVisible={setSideVisible}
-          handleNewChat={handleNewChat}
-          organizationListOption={organizationListOption}
-          chat_id={chat_id}
-          conversation={conversation}
-          setConversation={setConversation}
-        />
-        <Home
-          isSideVisible={isSideVisible}
-          setSideVisible={setSideVisible}
-          conversation={conversation}
-          setConversation={setConversation}
-        />
-      </div>
-      {/* <Footer /> */}
-    </>
+    <Grid className="chatbot">
+      <Sidebar
+        isSideVisible={isSideVisible}
+        setSideVisible={setSideVisible}
+        handleNewChat={handleNewChat}
+        organizationListOption={organizationListOption}
+        chat_id={chat_id}
+        conversation={conversation}
+        setConversation={setConversation}
+      />
+      <Home
+        isSideVisible={isSideVisible}
+        setSideVisible={setSideVisible}
+        conversation={conversation}
+        setConversation={setConversation}
+      />
+    </Grid>
   );
 };
 

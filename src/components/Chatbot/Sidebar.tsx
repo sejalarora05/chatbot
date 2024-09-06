@@ -8,12 +8,13 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
   FormControl,
   InputLabel,
   Select,
   SelectChangeEvent,
   MenuItem,
+  Tooltip,
+  Collapse,
 } from "@mui/material";
 import CreateIcon from "@mui/icons-material/Create";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -238,12 +239,12 @@ const Sidebar: React.FC<any> = ({
 
   return (
     <>
-      {isSideVisible ? (
-        <>
+      <Box>
+        <Collapse in={isSideVisible} orientation="horizontal" timeout={300}>
           <Box
-            mt={9}
             sx={{
-              width: 400,
+              marginTop: 9,
+              width: 300,
               bgcolor: "#fff",
               height: "93vh",
               p: 2,
@@ -251,6 +252,7 @@ const Sidebar: React.FC<any> = ({
               flexDirection: "column",
               overflowY: "auto",
               "&::-webkit-scrollbar": { display: "none" },
+              transition: "width 0.3s ease",
             }}
           >
             <ToastContainer position="bottom-right" autoClose={2000} />
@@ -296,10 +298,11 @@ const Sidebar: React.FC<any> = ({
                 <IconButton onClick={() => setSideVisible(false)}>
                   <MenuIcon sx={{ color: "#7e7e7e" }} />
                 </IconButton>
-
-                <IconButton onClick={() => handleNewChat()}>
-                  <CreateIcon sx={{ color: "#7e7e7e" }} />
-                </IconButton>
+                <Tooltip title={"New Chat"}>
+                  <IconButton onClick={() => handleNewChat()}>
+                    <CreateIcon sx={{ color: "#7e7e7e" }} />
+                  </IconButton>
+                </Tooltip>
               </Box>
             </Box>
 
@@ -362,13 +365,15 @@ const Sidebar: React.FC<any> = ({
               </List>
             </Box>
           </Box>
-          {open ? (
-            <div className="spinner-container">
-              <InfinitySpin width="200" color="#F86F03" />
-            </div>
-          ) : null}
-        </>
-      ) : (
+        </Collapse>
+      </Box>
+      {open ? (
+        <div className="spinner-container">
+          <InfinitySpin width="200" color="#F86F03" />
+        </div>
+      ) : null}
+
+      {!isSideVisible && (
         <Box
           mt={9}
           sx={{
@@ -404,30 +409,6 @@ interface ListItemButtonProps {
   handleClick: any;
   handleOpenDialog: any;
 }
-
-// const ListItemButton: React.FC<ListItemButtonProps> = ({ to, text, handleClick, handleOpenDialog }) => (
-//   <NavLink onClick={() => handleClick()} to={to} style={{ textDecoration: 'none' }}>
-//     {({ isActive }) => (
-//       <ListItem
-//         button
-//         sx={{
-//           p: 1,
-//           borderRadius: 1,
-//           backgroundColor: isActive ? '#e0e0e0' : 'transparent',
-//           fontWeight: isActive ? 'bold' : 'normal',
-//           transition: 'background-color 0.3s',
-//           '&:hover': {
-//             backgroundColor: '#f5f5f5',
-//           },
-//         }}
-//       >
-//         <ListItemText primary={text} sx={{ color: '#333' }} />
-//         <IconButton onClick={handleOpenDialog}><DeleteOutlineIcon sx={{color:'black', cursor:'alias'}}/></IconButton>
-
-//       </ListItem>
-//     )}
-//   </NavLink>
-// );
 
 const ListItemButton: React.FC<ListItemButtonProps> = ({
   to,
@@ -469,7 +450,8 @@ const ListItemButton: React.FC<ListItemButtonProps> = ({
               borderRadius: 1,
               backgroundColor: isActive ? "#e0e0e0" : "transparent",
               fontWeight: isActive ? "bold" : "normal",
-              transition: "background-color 0.3s",
+
+              transition: "background-color 0.2s ease",
             }}
           >
             <ListItemText primary={text} sx={{ color: "#333" }} />
@@ -490,7 +472,11 @@ const ListItemButton: React.FC<ListItemButtonProps> = ({
             },
           }}
         >
-          <DeleteOutlineIcon sx={{ color: "black" }} />
+          <DeleteOutlineIcon
+            sx={{
+              color: "black",
+            }}
+          />
         </IconButton>
       )}
     </Box>
