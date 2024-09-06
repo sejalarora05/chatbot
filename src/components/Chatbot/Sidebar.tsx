@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -373,7 +373,12 @@ const Sidebar: React.FC<any> = ({
         </div>
       ) : null}
 
-      {!isSideVisible && (
+      <CloseDrawer
+        visible={isSideVisible}
+        onClick={() => setSideVisible(true)}
+      />
+
+      {/* {!isSideVisible && (
         <Box
           mt={9}
           sx={{
@@ -391,7 +396,7 @@ const Sidebar: React.FC<any> = ({
             <MenuIcon sx={{ color: "#7e7e7e" }} />
           </IconButton>
         </Box>
-      )}
+      )} */}
 
       <DeleteConfirmationDialog
         open={isDialogOpen}
@@ -399,6 +404,50 @@ const Sidebar: React.FC<any> = ({
         onConfirm={handleConfirmDelete}
         itemToDelete="Sample Item"
       />
+    </>
+  );
+};
+
+const CloseDrawer = ({
+  visible,
+  onClick,
+}: {
+  visible: boolean;
+  onClick: () => void;
+}) => {
+  const [showElement, setShowElement] = useState(false);
+
+  useEffect(() => {
+    if (!visible) {
+      setTimeout(() => {
+        setShowElement(true);
+      }, 150);
+    } else {
+      setShowElement(false);
+    }
+  }, [visible]);
+
+  return (
+    <>
+      {showElement && (
+        <Box
+          mt={9}
+          sx={{
+            width: "auto",
+            bgcolor: "#fff",
+            height: "93vh",
+            p: 2,
+            display: "flex",
+            flexDirection: "column",
+            overflowY: "auto",
+            "&::-webkit-scrollbar": { display: "none" },
+          }}
+        >
+          <IconButton onClick={onClick}>
+            <MenuIcon sx={{ color: "#7e7e7e" }} />
+          </IconButton>
+        </Box>
+      )}
     </>
   );
 };
