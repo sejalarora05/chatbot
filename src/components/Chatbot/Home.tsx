@@ -1,5 +1,5 @@
 // Home.tsx
-import React, { useEffect, useRef, useState } from "react";
+import React, { HtmlHTMLAttributes, useEffect, useRef, useState } from "react";
 import {
   Box,
   Typography,
@@ -83,7 +83,7 @@ const Home: React.FC<any> = ({
   const [isStart, setIsStart] = useState(false);
   const [utterance, setUtterance]: any = useState(null);
   const [open, setOpen]: any = useState(false);
-  const lastMessageRef = useRef<any>(null);
+  const lastMessageRef = useRef<HTMLBodyElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null); // Create a ref for the file input
 
@@ -96,7 +96,11 @@ const Home: React.FC<any> = ({
   useEffect(() => {
     // Scroll to the last message whenever the conversation changes
     if (lastMessageRef.current) {
-      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
+      lastMessageRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "nearest",
+      });
     }
   }, [conversation]);
 
@@ -232,49 +236,12 @@ const Home: React.FC<any> = ({
         { content: val, type: "human" },
         { content: "", type: "ai" },
       ]);
-      if (lastMessageRef.current) {
-        lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
-      }
+
       setIsChatEnabled(false);
       setQuery("");
       await chatStartApi(payload, setConversation).then(() => {
         setIsChatEnabled(true);
       });
-      // await chatStartApi(payload)
-      //   .then((result: any) => {
-      //     console.log({ result });
-      //     if (result?.success) {
-      //       console.log("---chat started", result);
-
-      //       loadExistingConversation(conversationId);
-      //     } else {
-      //       const message: string =
-      //         result.data?.message || "Something Went Wrong.";
-      //       notifyError(message);
-      //       setOpen(false);
-      //       // setLoading(false)
-      //     }
-      //   })
-      //   .catch((err: any) => {
-      //     const error = err as AxiosError;
-      //     // Consolidated error handling
-      //     // setOpen(false);
-      //     notifyError(error.message);
-      //     let errorMessage = "Something went wrong.";
-      //     if (error.response) {
-      //       const responseData = error.response.data as { error?: string };
-      //       if (responseData?.error) {
-      //         errorMessage = responseData.error;
-      //       }
-      //     } else {
-      //       errorMessage =
-      //         "Error occurred while setting up the request: " + error.message;
-      //     }
-      //     // Notify error and set response message
-      //     notifyError(errorMessage);
-      //     // setOpen(false);
-      //     // setLoading(false)
-      //   });
     }
   };
 
@@ -355,16 +322,7 @@ const Home: React.FC<any> = ({
     }
   };
 
-  // useEffect(() => {
-  //   if (chat_id === undefined) {
-  //     setConversation([]);
-  //     console.log("Error1")
-  //   }
-  //   else {
-  //     loadExistingConversation();
-  //     console.log("Error2")
-  //   }
-  // }, [chat_id])
+
 
   return (
     <Grid
@@ -379,25 +337,7 @@ const Home: React.FC<any> = ({
         bgcolor: "#F7F7F7", // Background color for better contrast
       }}
     >
-      {/* Left Corner Menu */}
-      {/* {!isSideVisible && (
-        <Box
-          position="absolute"
-          top={70}
-          left={0}
-          p={1}
-          pl={2}
-          display="flex"
-          // justifyContent="flex-start"
-          // alignItems="flex-start"
-          // width="100vw"
-        >
-          <IconButton onClick={() => setSideVisible(true)}>
-            <MenuIcon sx={{ color: "#7e7e7e" }} />
-          </IconButton>
-        </Box>
-      )} */}
-      {/* Main Content */}
+    
       <Box
         height={"100vh"}
         display="flex"
@@ -496,107 +436,120 @@ const Home: React.FC<any> = ({
                 )}
 
                 {/* Display Conversation Messages */}
-                {conversation &&
-                  conversation?.map(
-                    (item: { content: string; type: string }, index: any) => (
-                      <Box
-                        key={index}
-                        ref={
-                          index === conversation.length - 1
-                            ? lastMessageRef
-                            : null
-                        }
-                        display="flex"
-                        justifyContent="flex-start"
-                        alignItems="center"
-                        textAlign={"left"}
-                        width="100%"
-                        my={1}
-                      >
-                        {item.type === "human" && (
-                          <Typography
-                            variant="body1"
-                            align="left"
-                            sx={{
-                              color: "#000",
-                              borderRadius: 1,
-                              padding: "10px",
-                              maxWidth: "100%",
-                              wordWrap: "break-word",
-                            }}
-                          >
-                            <span style={{ fontWeight: "bold" }}>
-                              Question:-{" "}
-                            </span>
-                            {item.content}
-                          </Typography>
-                        )}
-
-                        {item.type === "ai" && (
+                {
+                  conversation && (
+                    <Box>
+                      {conversation?.map(
+                        (
+                          item: { content: string; type: string },
+                          index: any
+                        ) => (
                           <Box
-                            sx={{
-                              display: "flex",
-                              flex: 1,
-                              justifyContent: "space-between",
-                            }}
+                            key={index}
+                            ref={
+                              index === conversation.length - 1
+                                ? lastMessageRef
+                                : null
+                            }
+                            display="flex"
+                            justifyContent="flex-start"
+                            alignItems="center"
+                            textAlign={"left"}
+                            width="100%"
+                            my={1}
                           >
-                            {item.content === "" && (
+                            {item.type === "human" && (
+                              <Typography
+                                variant="body1"
+                                align="left"
+                                sx={{
+                                  color: "#000",
+                                  borderRadius: 1,
+                                  padding: "10px",
+                                  maxWidth: "100%",
+                                  wordWrap: "break-word",
+                                }}
+                              >
+                                <span style={{ fontWeight: "bold" }}>
+                                  Question:-{" "}
+                                </span>
+                                {item.content}
+                              </Typography>
+                            )}
+
+                            {item.type === "ai" && (
                               <Box
                                 sx={{
                                   display: "flex",
                                   flex: 1,
-                                  flexDirection: "column",
+                                  justifyContent: "space-between",
                                 }}
                               >
-                                {/* <CircularProgress size={16} /> */}
-                                <ChatBotLoader />
+                                {item.content === "" && (
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      flex: 1,
+                                      flexDirection: "column",
+                                    }}
+                                  >
+                                    {/* <CircularProgress size={16} /> */}
+                                    <ChatBotLoader />
 
-                                <Skeleton
-                                  width="100%"
-                                  animation="wave"
-                                  height={50}
-                                />
-                                <Skeleton width="100%" animation="wave" />
-                                <Skeleton width="100%" animation="wave" />
+                                    <Skeleton
+                                      width="100%"
+                                      animation="wave"
+                                      height={50}
+                                    />
+                                    <Skeleton width="100%" animation="wave" />
+                                    <Skeleton width="100%" animation="wave" />
+                                  </Box>
+                                )}
+                                <Typography
+                                  variant="body1"
+                                  align="left"
+                                  sx={{
+                                    color: "#000",
+                                    borderRadius: 1,
+                                    padding: "10px",
+                                    maxWidth: "100%",
+                                    wordWrap: "break-word",
+                                  }}
+                                >
+                                  {item.content
+                                    .split("\n")
+                                    .map((line, index) => (
+                                      <span key={index}>
+                                        {line}
+                                        <br />
+                                      </span>
+                                    ))}
+                                </Typography>
+                                {item.content !== "" && (
+                                  <VolumeUpIcon
+                                    onClick={
+                                      isStart
+                                        ? () => handleStop()
+                                        : () => handleSpeak(item.content, index)
+                                    }
+                                    sx={{
+                                      right: 0,
+                                      color:
+                                        activeIndex === index
+                                          ? "#F58220"
+                                          : "black",
+                                    }}
+                                  />
+                                )}
                               </Box>
                             )}
-                            <Typography
-                              variant="body1"
-                              align="left"
-                              sx={{
-                                color: "#000",
-                                borderRadius: 1,
-                                padding: "10px",
-                                maxWidth: "100%",
-                                wordWrap: "break-word",
-                              }}
-                            >
-                              {item.content.split("\n").map((line, index) => (
-                                <span key={index}>
-                                  {line}
-                                  <br />
-                                </span>
-                              ))}
-                            </Typography>
-                            {item.content !== "" && (
-                              <VolumeUpIcon
-                                onClick={
-                                  isStart
-                                    ? () => handleStop()
-                                    : () => handleSpeak(item.content, index)
-                                }
-                                sx={{
-                                  right: 0,
-                                  color:
-                                    activeIndex === index ? "#F58220" : "black",
-                                }}
-                              />
-                            )}
                           </Box>
-                        )}
-                      </Box>
-                    )
-                  )}
+                        )
+                      )}
+                    </Box>
+                  )
+                  //paste here
+                }
               </Box>
               {/* Input Textfield and Button */}
               <Box
