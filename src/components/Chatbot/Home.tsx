@@ -16,6 +16,8 @@ import {
   Select,
   SelectChangeEvent,
   circularProgressClasses,
+  Button,
+  Link,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import MicIcon from "@mui/icons-material/Mic";
@@ -23,14 +25,17 @@ import StopCircleIcon from "@mui/icons-material/StopCircle";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import { ThreeDots } from "react-loader-spinner";
 import chatBot from "../../assets/images/chatbot.png";
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import { NETSMARTZ_THEME_COLOR } from "../theme/colors";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
+import { Snackbar, Alert, AlertColor } from '@mui/material';
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   chatStartApi,
+  generateTicket,
   loadExistingChatApi,
   newChatCreateApi,
 } from "../../api_config/api_services";
@@ -71,7 +76,9 @@ const Home: React.FC<any> = ({
   setConversation,
 }) => {
   const chatModelSelector = useSelector((state: RootState) => state.chatbot);
+  console.log('blah', chatModelSelector)
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const [query, setQuery] = useState<any>("");
   // const [conversation, setConversation] = useState<any>([]);
   const [loading, setLoading] = useState(false);
@@ -83,13 +90,67 @@ const Home: React.FC<any> = ({
   const [isStart, setIsStart] = useState(false);
   const [utterance, setUtterance]: any = useState(null);
   const [open, setOpen]: any = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const lastMessageRef = useRef<HTMLBodyElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null); // Create a ref for the file input
 
+  const { chat_id } = useParams();
+  console.log('chatId', { chat_id });
+
+  const selectedOrgId = useSelector((state: any) => state?.auth?.selectedOrgId);
+  console.log('Selected Organisation Id', selectedOrgId)
+
+  const caresmartzId = "aee39f85-3f5a-4bb7-9c4d-4e6e3a4826dc";
+
   const handleFileUploadClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
+    }
+  };
+
+  // in progress
+  const handleGenerateTicket = async () => {
+    if (selectedOrgId !== "") {
+      const payload: any = { conversation_id: chat_id, org_id: selectedOrgId };
+      console.log("payload of generateTicket", payload);
+      await generateTicket(payload)
+        .then((result: any) => {
+          console.log({ result });
+          if (result?.success) {
+            console.log("Generate Ticket----->", result);
+            setSnackbarMessage('Successfully processed!');
+            setSnackbarSeverity('success');
+            setOpenSnackbar(true);
+          } else {
+            const message: string =
+              result.data?.message || "Something Went Wrong.";
+            notifyError(message);
+            setSnackbarMessage('Something went wrong!');
+            setSnackbarSeverity('error');
+            setOpenSnackbar(true);
+          }
+        })
+        .catch((err: any) => {
+          const error = err as AxiosError;
+          // Consolidated error handling
+          let errorMessage = "Something went wrong.";
+          if (error.response) {
+            const responseData = error.response.data as { error?: string };
+            if (responseData?.error) {
+              errorMessage = responseData.error;
+            }
+          } else {
+            errorMessage =
+              "Error occurred while setting up the request: " + error.message;
+          }
+          // Notify error and set response message
+          notifyError(errorMessage);
+          setOpen(false);
+          // setLoading(false)
+        });
     }
   };
 
@@ -103,11 +164,6 @@ const Home: React.FC<any> = ({
       });
     }
   }, [conversation]);
-
-  const selectedOrgId = useSelector((state: any) => state?.auth?.selectedOrgId);
-  const { chat_id } = useParams();
-  console.log({ chat_id });
-  const navigate = useNavigate();
 
   const {
     transcript,
@@ -151,7 +207,6 @@ const Home: React.FC<any> = ({
 
             handleApiCall(val, conversationId);
             navigate(`/c/${conversationId}`);
-
             // setLoading(false)
             // setConversation([])
           } else {
@@ -322,8 +377,6 @@ const Home: React.FC<any> = ({
     }
   };
 
-
-
   return (
     <Grid
       container
@@ -337,7 +390,7 @@ const Home: React.FC<any> = ({
         bgcolor: "#F7F7F7", // Background color for better contrast
       }}
     >
-    
+
       <Box
         height={"100vh"}
         display="flex"
@@ -366,7 +419,8 @@ const Home: React.FC<any> = ({
                   {/* <InputLabel id="demo-simple-select-label">
                     Chat Model
                   </InputLabel> */}
-                  <Select
+                  {/* model selector */}
+                  {/* <Select
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"
                     value={chatModelSelector.selectedModel.value}
@@ -384,7 +438,7 @@ const Home: React.FC<any> = ({
                         </MenuItem>
                       );
                     })}
-                  </Select>
+                  </Select> */}
                 </FormControl>
               </Box>
 
@@ -551,11 +605,13 @@ const Home: React.FC<any> = ({
                   //paste here
                 }
               </Box>
+
+
               {/* Input Textfield and Button */}
               <Box
                 sx={{
                   position: "absolute",
-                  bottom: "0px",
+                  bottom: "30px",
                   left: "0px",
                   display: "inline-flex",
                   width: "100%",
@@ -600,6 +656,10 @@ const Home: React.FC<any> = ({
                         <IconButton onClick={handleFileUploadClick}>
                           <UploadFile />
                         </IconButton>
+                        {/* {selectedOrgId === caresmartzId &&
+                          <IconButton onClick={handleGenerateTicket}>
+                            <SupportAgentIcon />
+                          </IconButton>} */}
                         {loading ? (
                           <IconButton>
                             <ThreeDots
@@ -619,7 +679,6 @@ const Home: React.FC<any> = ({
                     ),
                   }}
                 />
-
                 {/* Independent Icon Button Box */}
                 <Box
                   sx={{
@@ -638,7 +697,51 @@ const Home: React.FC<any> = ({
                     </IconButton>
                   )}
                 </Box>
+
               </Box>
+              {selectedOrgId === caresmartzId && conversation.length > 0 &&
+                <Box
+                  sx={{
+                    position: "absolute",
+                    bottom: "30px",
+                    left: "0px",
+                    width: "100%",
+                    display: "flex",
+                    justifyContent: "right",
+                    px: 2,
+                    zIndex: 10,
+                  }}
+                >
+                  <Link
+                    component="button"
+                    color="primary"
+                    // variant="body2"
+                    fontSize="15px"
+                    onClick={handleGenerateTicket}
+                  >
+                    Contact Support Team
+                  </Link>
+
+                </Box>}
+              <Snackbar
+                open={openSnackbar}
+                autoHideDuration={3000}
+                onClose={() => setOpenSnackbar(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+              >
+                <Alert
+                  onClose={() => setOpenSnackbar(false)}
+                  severity={snackbarSeverity}
+                  icon={false}
+                  action={null}
+                  sx={{
+                    width: '100%', bgcolor: 'white',
+                    color: 'black'
+                  }}
+                >
+                  {snackbarMessage}
+                </Alert>
+              </Snackbar>
             </Paper>
           </Grid>
           {/* </Grid> */}

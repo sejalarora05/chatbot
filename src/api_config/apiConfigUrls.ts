@@ -50,3 +50,4 @@ export const chatUrl:any = 'https://saaschatbot.netsmartz.us/api/AI/chat';
 export const deleteExistingConvUrl:any = 'https://saaschatbot.netsmartz.us/api/load/delete/conversation'
 
 
+export const generateTicketUrl:any= 'https://saaschatbot.netsmartz.us/api/ticket/generate'

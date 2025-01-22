@@ -10,6 +10,7 @@ import {
   conversationListUrl,
   deleteExistingConvUrl,
   emailSentApiUrl,
+  generateTicketUrl,
   getArticlesApiUrl,
   huggingFaceApiUrl,
   langChainApiUrl,
@@ -158,6 +159,19 @@ export const getHistoryApi = async (payload: any) => {
 export const newChatCreateApi = async (payload: any) => {
   try {
     const response = await postRequest(newChatCreateUrl, payload, axiosHeader);
+    const data = response.data;
+    const resultObj = { success: true, data: data };
+    return resultObj;
+  } catch (err) {
+    const error = err as AxiosError;
+    const errorObj = { success: false, data: error };
+    return errorObj;
+  }
+};
+
+export const generateTicket = async (payload: any) => {
+  try {
+    const response = await postRequest(generateTicketUrl, payload, axiosHeader);
     const data = response.data;
     const resultObj = { success: true, data: data };
     return resultObj;
