@@ -121,7 +121,8 @@ const Home: React.FC<any> = ({
           console.log({ result });
           if (result?.success) {
             console.log("Generate Ticket----->", result);
-            setSnackbarMessage(result?.data.message);
+            console.log('snackbar msg', result?.data.message +  result?.data.ticket_id)
+            setSnackbarMessage(result?.data.message + " "+ result?.data.ticket_id);
             setSnackbarSeverity('success');
             setOpenSnackbar(true);
           } else {
