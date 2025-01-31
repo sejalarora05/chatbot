@@ -36,6 +36,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   chatStartApi,
   generateTicket,
+  checkTicketStatus,
   loadExistingChatApi,
   newChatCreateApi,
 } from "../../api_config/api_services";
@@ -92,7 +93,9 @@ const Home: React.FC<any> = ({
   const [open, setOpen]: any = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [isButtonVisible, setIsButtonVisible] = useState(true);
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+
   const lastMessageRef = useRef<HTMLBodyElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null); // Create a ref for the file input
@@ -111,7 +114,6 @@ const Home: React.FC<any> = ({
     }
   };
 
-  // in progress
   const handleGenerateTicket = async () => {
     if (selectedOrgId !== "") {
       const payload: any = { conversation_id: chat_id, org_id: selectedOrgId };
@@ -121,10 +123,12 @@ const Home: React.FC<any> = ({
           console.log({ result });
           if (result?.success) {
             console.log("Generate Ticket----->", result);
-            console.log('snackbar msg', result?.data.message +  result?.data.ticket_id)
-            setSnackbarMessage(result?.data.message + " "+ result?.data.ticket_id);
+            console.log('snackbar msg', result?.data.message + "Your Ticket id is " + result?.data.ticket_id + ".")
+            setSnackbarMessage(result?.data.message +  ". Your Ticket id is " + result?.data.ticket_id + ".");
             setSnackbarSeverity('success');
             setOpenSnackbar(true);
+            // saveGeneratedTicket(chat_id);
+            setIsButtonVisible(false);
           } else {
             const message: string =
               result.data?.message || "Something Went Wrong.";
@@ -155,6 +159,14 @@ const Home: React.FC<any> = ({
     }
   };
 
+  const shouldShowSupportButton = () => {
+    return (
+      selectedOrgId === caresmartzId &&
+      conversation.length > 0 &&
+      isButtonVisible
+    );
+  };
+
   useEffect(() => {
     // Scroll to the last message whenever the conversation changes
     if (lastMessageRef.current) {
@@ -165,6 +177,53 @@ const Home: React.FC<any> = ({
       });
     }
   }, [conversation]);
+
+  useEffect(() => {
+    handleTicketStatus()
+  }, [chat_id])
+
+  const handleTicketStatus = async () => {
+    if (selectedOrgId !== "") {
+      const payload: any = { conversation_id: chat_id, org_id: selectedOrgId };
+      console.log("payload of ticket status", payload);
+      await checkTicketStatus(payload)
+        .then((result: any) => {
+          console.log({ result });
+          if (result?.success) {
+            console.log("Check Ticket Status----->", result);
+            console.log('snackbar msg', result?.data.status)
+            if (result?.data.status) {
+              setIsButtonVisible(false);
+            } 
+            else {
+              setIsButtonVisible(true);
+            }
+          } else {
+            const message: string =
+              result.data?.message || "Something Went Wrong.";
+            console.log('Error in checkTicketStatus', message);
+          }
+        })
+        .catch((err: any) => {
+          const error = err as AxiosError;
+          // Consolidated error handling
+          let errorMessage = "Something went wrong.";
+          if (error.response) {
+            const responseData = error.response.data as { error?: string };
+            if (responseData?.error) {
+              errorMessage = responseData.error;
+            }
+          } else {
+            errorMessage =
+              "Error occurred while setting up the request: " + error.message;
+          }
+          // Notify error and set response message
+          notifyError(errorMessage);
+          setOpen(false);
+          // setLoading(false)
+        });
+    }
+  };
 
   const {
     transcript,
@@ -700,7 +759,7 @@ const Home: React.FC<any> = ({
                 </Box>
 
               </Box>
-              {selectedOrgId === caresmartzId && conversation.length > 0 &&
+              {shouldShowSupportButton() &&
                 <Box
                   sx={{
                     position: "absolute",

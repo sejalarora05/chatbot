@@ -7,6 +7,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import SideDrawer from "./drawer/Drawer";
 import { useDispatch } from "react-redux";
 import { setAuthToken } from "../../api_config/slices/authSlice";
+import T from "../../utils/T";
 
 
 function scrollToBottom() {
@@ -85,7 +86,7 @@ function Header(): JSX.Element {
                 </Link>
               )} */}
 
-              <Button onClick={handleLogout} color="secondary" variant="outlined">Logout</Button>
+              <Button onClick={handleLogout} color="secondary" variant="outlined">{T.LOGOUT}</Button>
 
 
             </div>

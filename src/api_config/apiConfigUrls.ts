@@ -51,3 +51,5 @@ export const deleteExistingConvUrl:any = 'https://saaschatbot.netsmartz.us/api/l
 
 
 export const generateTicketUrl:any= 'https://saaschatbot.netsmartz.us/api/ticket/generate'
+
+export const checkTicketStatusUrl:any= 'https://saaschatbot.netsmartz.us/api/ticket/status'
