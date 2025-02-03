@@ -32,6 +32,7 @@ import { InfinitySpin } from "react-loader-spinner";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import DeleteConfirmationDialog from "./DeleteConfirmation";
 import ElevenLabsWidget from "./elevenLabsWidget";
+import ElevenLabsSouthCoWidget from "./elevenLabsSouthCoWidget";
 
 const Sidebar: React.FC<any> = ({
   isSideVisible,
@@ -43,6 +44,8 @@ const Sidebar: React.FC<any> = ({
 }) => {
   const selectedOrgId = useSelector((state: any) => state?.auth?.selectedOrgId);
   const [showScript, setShowScript]: any = useState(false);
+  const [showSouthCoScript, setSouthCoScript]: any = useState(false);
+
   const navigate = useNavigate();
   const [convHistory, setConvHistory]: any = useState({});
   const dispatch = useDispatch();
@@ -52,13 +55,19 @@ const Sidebar: React.FC<any> = ({
     localStorage.getItem("token");
 
   useEffect(() => {
-    if(selectedOrgId ==='1f7df04a-eb91-4ff3-9b66-27417f616f69' || selectedOrgId ==='0e128dc6-d218-4c9a-baf2-52b3c7ccc1a9' || selectedOrgId === '14a75a85-832d-474c-b755-7edd8e4c7f32' || selectedOrgId === '25771684-edac-432c-9ad1-a60b3b7cf846') {
+    if (selectedOrgId === '1f7df04a-eb91-4ff3-9b66-27417f616f69' || selectedOrgId === '0e128dc6-d218-4c9a-baf2-52b3c7ccc1a9') {
       setShowScript(true)
-    } else {
+      setSouthCoScript(false)
+    } else if (selectedOrgId === '14a75a85-832d-474c-b755-7edd8e4c7f32' || selectedOrgId === '25771684-edac-432c-9ad1-a60b3b7cf846') {
+      setSouthCoScript(true)
       setShowScript(false)
     }
-
+    else {
+      setShowScript(false)
+      setSouthCoScript(false)
+    }
   }, [selectedOrgId])
+
 
   // const handleChange = (event: SelectChangeEvent) => {
   //   dispatch(setSelectedOrganization({ org_id: event.target.value as string }));
@@ -68,11 +77,16 @@ const Sidebar: React.FC<any> = ({
 
   const handleChange = (event: SelectChangeEvent) => {
     dispatch(setSelectedOrganization({ org_id: event.target.value as string }));
-    console.log(event,'event')
-    if(event.target.value==='1f7df04a-eb91-4ff3-9b66-27417f616f69' || event.target.value==="0e128dc6-d218-4c9a-baf2-52b3c7ccc1a9" || event.target.value==="14a75a85-832d-474c-b755-7edd8e4c7f32" || event.target.value==="25771684-edac-432c-9ad1-a60b3b7cf846") {
+    console.log(event, 'event')
+    if (event.target.value === '1f7df04a-eb91-4ff3-9b66-27417f616f69' || event.target.value === "0e128dc6-d218-4c9a-baf2-52b3c7ccc1a9") {
       setShowScript(true)
-    } else{
+      setSouthCoScript(false)
+    } else if (event.target.value === '14a75a85-832d-474c-b755-7edd8e4c7f32' || event.target.value === '25771684-edac-432c-9ad1-a60b3b7cf846') {
+      setSouthCoScript(true)
       setShowScript(false)
+    } else {
+      setShowScript(false)
+      setSouthCoScript(false)
     }
     navigate("/");
     setConversation([]);
@@ -390,6 +404,7 @@ const Sidebar: React.FC<any> = ({
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
               {showScript && <ElevenLabsWidget></ElevenLabsWidget>}
+              {showSouthCoScript && <ElevenLabsSouthCoWidget></ElevenLabsSouthCoWidget>}
             </Box>
           </Box>
         </Collapse>
