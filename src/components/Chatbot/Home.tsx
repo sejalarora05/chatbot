@@ -18,6 +18,8 @@ import {
   circularProgressClasses,
   Button,
   Link,
+  Card,
+  CardContent,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import MicIcon from "@mui/icons-material/Mic";
@@ -25,12 +27,12 @@ import StopCircleIcon from "@mui/icons-material/StopCircle";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import { ThreeDots } from "react-loader-spinner";
 import chatBot from "../../assets/images/chatbot.png";
-import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import { NETSMARTZ_THEME_COLOR } from "../theme/colors";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
-import { Snackbar, Alert, AlertColor } from '@mui/material';
+import { Snackbar, Alert, AlertColor } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -77,7 +79,7 @@ const Home: React.FC<any> = ({
   setConversation,
 }) => {
   const chatModelSelector = useSelector((state: RootState) => state.chatbot);
-  console.log('blah', chatModelSelector)
+  console.log("blah", chatModelSelector);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [query, setQuery] = useState<any>("");
@@ -92,19 +94,20 @@ const Home: React.FC<any> = ({
   const [utterance, setUtterance]: any = useState(null);
   const [open, setOpen]: any = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarMessage, setSnackbarMessage] = useState("");
   const [isButtonVisible, setIsButtonVisible] = useState(true);
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+  const [snackbarSeverity, setSnackbarSeverity] =
+    useState<AlertColor>("success");
 
   const lastMessageRef = useRef<HTMLBodyElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null); // Create a ref for the file input
 
   const { chat_id } = useParams();
-  console.log('chatId', { chat_id });
+  console.log("chatId", { chat_id });
 
   const selectedOrgId = useSelector((state: any) => state?.auth?.selectedOrgId);
-  console.log('Selected Organisation Id', selectedOrgId)
+  console.log("Selected Organisation Id", selectedOrgId);
 
   const caresmartzId = "aee39f85-3f5a-4bb7-9c4d-4e6e3a4826dc";
 
@@ -123,9 +126,20 @@ const Home: React.FC<any> = ({
           console.log({ result });
           if (result?.success) {
             console.log("Generate Ticket----->", result);
-            console.log('snackbar msg', result?.data.message + "Your Ticket id is " + result?.data.ticket_id + ".")
-            setSnackbarMessage(result?.data.message +  ". Your Ticket id is " + result?.data.ticket_id + ".");
-            setSnackbarSeverity('success');
+            console.log(
+              "snackbar msg",
+              result?.data.message +
+                "Your Ticket id is " +
+                result?.data.ticket_id +
+                "."
+            );
+            setSnackbarMessage(
+              result?.data.message +
+                ". Your Ticket id is " +
+                result?.data.ticket_id +
+                "."
+            );
+            setSnackbarSeverity("success");
             setOpenSnackbar(true);
             // saveGeneratedTicket(chat_id);
             setIsButtonVisible(false);
@@ -133,8 +147,8 @@ const Home: React.FC<any> = ({
             const message: string =
               result.data?.message || "Something Went Wrong.";
             notifyError(message);
-            setSnackbarMessage('Something went wrong!');
-            setSnackbarSeverity('error');
+            setSnackbarMessage("Something went wrong!");
+            setSnackbarSeverity("error");
             setOpenSnackbar(true);
           }
         })
@@ -179,8 +193,8 @@ const Home: React.FC<any> = ({
   }, [conversation]);
 
   useEffect(() => {
-    handleTicketStatus()
-  }, [chat_id])
+    handleTicketStatus();
+  }, [chat_id]);
 
   const handleTicketStatus = async () => {
     if (selectedOrgId !== "") {
@@ -191,17 +205,16 @@ const Home: React.FC<any> = ({
           console.log({ result });
           if (result?.success) {
             console.log("Check Ticket Status----->", result);
-            console.log('snackbar msg', result?.data.status)
+            console.log("snackbar msg", result?.data.status);
             if (result?.data.status) {
               setIsButtonVisible(false);
-            } 
-            else {
+            } else {
               setIsButtonVisible(true);
             }
           } else {
             const message: string =
               result.data?.message || "Something Went Wrong.";
-            console.log('Error in checkTicketStatus', message);
+            console.log("Error in checkTicketStatus", message);
           }
         })
         .catch((err: any) => {
@@ -450,7 +463,6 @@ const Home: React.FC<any> = ({
         bgcolor: "#F7F7F7", // Background color for better contrast
       }}
     >
-
       <Box
         height={"100vh"}
         display="flex"
@@ -477,28 +489,28 @@ const Home: React.FC<any> = ({
               <Box sx={{ maxWidth: 100, minWidth: 100 }}>
                 <FormControl fullWidth variant="standard">
                   {/* <InputLabel id="demo-simple-select-label">
-                    Chat Model
-                  </InputLabel> */}
+               Chat Model
+             </InputLabel> */}
                   {/* model selector */}
                   {/* <Select
-                    labelId="demo-simple-select-label"
-                    id="demo-simple-select"
-                    value={chatModelSelector.selectedModel.value}
-                    label="Chat Model"
-                    onChange={(event: SelectChangeEvent) => {
-                      dispatch(
-                        setSelectedChatBotModel({ value: event.target.value })
-                      );
-                    }}
-                  >
-                    {chatModelSelector.chatBotModels.map((item: any) => {
-                      return (
-                        <MenuItem key={item?.value} value={item?.value}>
-                          {item?.label}
-                        </MenuItem>
-                      );
-                    })}
-                  </Select> */}
+               labelId="demo-simple-select-label"
+               id="demo-simple-select"
+               value={chatModelSelector.selectedModel.value}
+               label="Chat Model"
+               onChange={(event: SelectChangeEvent) => {
+                 dispatch(
+                   setSelectedChatBotModel({ value: event.target.value })
+                 );
+               }}
+             >
+               {chatModelSelector.chatBotModels.map((item: any) => {
+                 return (
+                   <MenuItem key={item?.value} value={item?.value}>
+                     {item?.label}
+                   </MenuItem>
+                 );
+               })}
+             </Select> */}
                 </FormControl>
               </Box>
 
@@ -551,121 +563,226 @@ const Home: React.FC<any> = ({
 
                 {/* Display Conversation Messages */}
                 {
-                  conversation && (
-                    <Box>
-                      {conversation?.map(
-                        (
-                          item: { content: string; type: string },
-                          index: any
-                        ) => (
-                          <Box
-                            key={index}
-                            ref={
-                              index === conversation.length - 1
-                                ? lastMessageRef
-                                : null
-                            }
-                            display="flex"
-                            justifyContent="flex-start"
-                            alignItems="center"
-                            textAlign={"left"}
-                            width="100%"
-                            my={1}
-                          >
-                            {item.type === "human" && (
+                  conversation &&
+                    conversation?.map(
+                      (item: { content: string; type: string }, index: any) => (
+                        <Card
+                          key={index}
+                          variant="outlined"
+                          sx={{ marginBottom: "10px", border: "none" }}
+                        >
+                          <CardContent>
+                            {item?.type === "human" && (
                               <Typography
                                 variant="body1"
-                                align="left"
                                 sx={{
-                                  color: "#000",
-                                  borderRadius: 1,
-                                  padding: "10px",
-                                  maxWidth: "100%",
-                                  wordWrap: "break-word",
+                                  width: "55%",
+                                  marginBottom: "4px",
+                                  fontWeight: "bold",
+                                  padding: "15px",
+                                  paddingLeft: "15px",
+                                  paddingRight: "15px",
+                                  backgroundColor: "rgb(237 237 237)",
+                                  borderRadius: "10px",
+                                  overflow: "auto", // Allow scroll if needed
+                                  wordBreak: "break-word",
                                 }}
                               >
-                                <span style={{ fontWeight: "bold" }}>
-                                  Question:-{" "}
-                                </span>
-                                {item.content}
+                                {item?.content}
                               </Typography>
                             )}
-
-                            {item.type === "ai" && (
-                              <Box
+                            {item?.type === "ai" && (
+                              <Typography
                                 sx={{
-                                  display: "flex",
-                                  flex: 1,
-                                  justifyContent: "space-between",
+                                  width: "55%",
+                                  float: "right",
+                                  padding: "15px",
+                                  border: "1px solid rgb(237, 237, 237)",
+                                  borderRadius: "10px",
+                                  overflow: "auto", // Allow scroll if needed
+                                  wordBreak: "break-word", // Ensure words break and wrap correctly
+                                  // backgroundColor: "#EAEAED",
                                 }}
+                                variant="body1"
+                                ref={
+                                  index === conversation.length - 1
+                                    ? lastMessageRef
+                                    : null
+                                }
                               >
                                 {item.content === "" && (
-                                  <Box
-                                    sx={{
-                                      display: "flex",
-                                      flex: 1,
-                                      flexDirection: "column",
-                                    }}
-                                  >
-                                    {/* <CircularProgress size={16} /> */}
-                                    <ChatBotLoader />
-
-                                    <Skeleton
-                                      width="100%"
-                                      animation="wave"
-                                      height={50}
+                                  <CircularProgress size={16} />
+                                )}
+                                {!loading &&
+                                  (isStart ? (
+                                    <VolumeUpIcon
+                                      onClick={() => handleStop()}
+                                      sx={{
+                                        marginLeft: "8px",
+                                        color:
+                                          activeIndex === index
+                                            ? "#F58220"
+                                            : "black",
+                                        float: "right",
+                                      }}
                                     />
-                                    <Skeleton width="100%" animation="wave" />
-                                    <Skeleton width="100%" animation="wave" />
-                                  </Box>
-                                )}
-                                <Typography
-                                  variant="body1"
-                                  align="left"
-                                  sx={{
-                                    color: "#000",
-                                    borderRadius: 1,
-                                    padding: "10px",
-                                    maxWidth: "100%",
-                                    wordWrap: "break-word",
+                                  ) : (
+                                    <VolumeUpIcon
+                                      onClick={() =>
+                                        handleSpeak(item.content, index)
+                                      }
+                                      sx={{
+                                        marginLeft: "8px",
+                                        color:
+                                          activeIndex === index
+                                            ? "#F58220"
+                                            : "black",
+                                        float: "right",
+                                      }}
+                                    />
+                                  ))}
+                                {/* <p>{item.content}</p> */}
+
+                                <div
+                                  dangerouslySetInnerHTML={{
+                                    __html: item.content
+                                      .replace(
+                                        /\*\*(.*?)\*\*/g,
+                                        "<strong>$1</strong>"
+                                      )
+                                      .replace(/\n/g, "<br />")
+                                      // Handle Markdown links first
+                                      .replace(
+                                        /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+                                        '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+                                      )
+                                      // Handle plain URLs with explicit punctuation exclusion
+                                      .replace(
+                                        /(?<!["'>])\b(https?:\/\/[^\s<>.!?,;:]+(?:\.[^\s<>.!?,;:]+)*)/g,
+                                        '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+                                      ),
                                   }}
-                                >
-                                  {item.content
-                                    .split("\n")
-                                    .map((line, index) => (
-                                      <span key={index}>
-                                        {line}
-                                        <br />
-                                      </span>
-                                    ))}
-                                </Typography>
-                                {item.content !== "" && (
-                                  <VolumeUpIcon
-                                    onClick={
-                                      isStart
-                                        ? () => handleStop()
-                                        : () => handleSpeak(item.content, index)
-                                    }
-                                    sx={{
-                                      right: 0,
-                                      color:
-                                        activeIndex === index
-                                          ? "#F58220"
-                                          : "black",
-                                    }}
-                                  />
-                                )}
-                              </Box>
+                                />
+                              </Typography>
                             )}
-                          </Box>
-                        )
-                      )}
-                    </Box>
-                  )
+                          </CardContent>
+                        </Card>
+                      )
+                    )
+                  // conversation && (
+                  //   <Box>
+                  //     {conversation?.map(
+                  //       (
+                  //         item: { content: string; type: string },
+                  //         index: any
+                  //       ) => (
+                  //         <Box
+                  //           key={index}
+                  //           ref={
+                  //             index === conversation.length - 1
+                  //               ? lastMessageRef
+                  //               : null
+                  //           }
+                  //           display="flex"
+                  //           justifyContent="flex-start"
+                  //           alignItems="center"
+                  //           textAlign={"left"}
+                  //           width="100%"
+                  //           my={1}
+                  //         >
+                  //           {item.type === "human" && (
+                  //             <Typography
+                  //               variant="body1"
+                  //               align="left"
+                  //               sx={{
+                  //                 color: "#000",
+                  //                 borderRadius: 1,
+                  //                 padding: "10px",
+                  //                 maxWidth: "100%",
+                  //                 wordWrap: "break-word",
+                  //               }}
+                  //             >
+                  //               <span style={{ fontWeight: "bold" }}>
+                  //                 Question:-{" "}
+                  //               </span>
+                  //               {item.content}
+                  //             </Typography>
+                  //           )}
+
+                  //           {item.type === "ai" && (
+                  //             <Box
+                  //               sx={{
+                  //                 display: "flex",
+                  //                 flex: 1,
+                  //                 justifyContent: "space-between",
+                  //               }}
+                  //             >
+                  //               {item.content === "" && (
+                  //                 <Box
+                  //                   sx={{
+                  //                     display: "flex",
+                  //                     flex: 1,
+                  //                     flexDirection: "column",
+                  //                   }}
+                  //                 >
+                  //                   {/* <CircularProgress size={16} /> */}
+                  //                   <ChatBotLoader />
+
+                  //                   <Skeleton
+                  //                     width="100%"
+                  //                     animation="wave"
+                  //                     height={50}
+                  //                   />
+                  //                   <Skeleton width="100%" animation="wave" />
+                  //                   <Skeleton width="100%" animation="wave" />
+                  //                 </Box>
+                  //               )}
+                  //               <Typography
+                  //                 variant="body1"
+                  //                 align="left"
+                  //                 sx={{
+                  //                   color: "#000",
+                  //                   borderRadius: 1,
+                  //                   padding: "10px",
+                  //                   maxWidth: "100%",
+                  //                   wordWrap: "break-word",
+                  //                 }}
+                  //               >
+                  //                 {item.content
+                  //                   .split("\n")
+                  //                   .map((line, index) => (
+                  //                     <span key={index}>
+                  //                       {line}
+                  //                       <br />
+                  //                     </span>
+                  //                   ))}
+                  //               </Typography>
+                  //               {item.content !== "" && (
+                  //                 <VolumeUpIcon
+                  //                   onClick={
+                  //                     isStart
+                  //                       ? () => handleStop()
+                  //                       : () => handleSpeak(item.content, index)
+                  //                   }
+                  //                   sx={{
+                  //                     right: 0,
+                  //                     color:
+                  //                       activeIndex === index
+                  //                         ? "#F58220"
+                  //                         : "black",
+                  //                   }}
+                  //                 />
+                  //               )}
+                  //             </Box>
+                  //           )}
+                  //         </Box>
+                  //       )
+                  //     )}
+                  //   </Box>
+                  // )
                   //paste here
                 }
               </Box>
-
 
               {/* Input Textfield and Button */}
               <Box
@@ -713,13 +830,13 @@ const Home: React.FC<any> = ({
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton onClick={handleFileUploadClick}>
-                          <UploadFile />
-                        </IconButton>
+                        {/* <IconButton onClick={handleFileUploadClick}>
+                     <UploadFile />
+                   </IconButton> */}
                         {/* {selectedOrgId === caresmartzId &&
-                          <IconButton onClick={handleGenerateTicket}>
-                            <SupportAgentIcon />
-                          </IconButton>} */}
+                     <IconButton onClick={handleGenerateTicket}>
+                       <SupportAgentIcon />
+                     </IconButton>} */}
                         {loading ? (
                           <IconButton>
                             <ThreeDots
@@ -757,9 +874,8 @@ const Home: React.FC<any> = ({
                     </IconButton>
                   )}
                 </Box>
-
               </Box>
-              {shouldShowSupportButton() &&
+              {shouldShowSupportButton() && (
                 <Box
                   sx={{
                     position: "absolute",
@@ -781,13 +897,13 @@ const Home: React.FC<any> = ({
                   >
                     Contact Support Team
                   </Link>
-
-                </Box>}
+                </Box>
+              )}
               <Snackbar
                 open={openSnackbar}
                 autoHideDuration={3000}
                 onClose={() => setOpenSnackbar(false)}
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
               >
                 <Alert
                   onClose={() => setOpenSnackbar(false)}
@@ -795,8 +911,9 @@ const Home: React.FC<any> = ({
                   icon={false}
                   action={null}
                   sx={{
-                    width: '100%', bgcolor: 'white',
-                    color: 'black'
+                    width: "100%",
+                    bgcolor: "white",
+                    color: "black",
                   }}
                 >
                   {snackbarMessage}
